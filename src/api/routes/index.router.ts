@@ -60,14 +60,18 @@ router
   .use((req, res, next) => telemetry.collectTelemetry(req, res, next))
 
   .get('/', (req, res) => {
-    res.status(HttpStatus.OK).json({
-      status: HttpStatus.OK,
-      message: 'Welcome to the Evolution API, it is working!',
-      version: packageJson.version,
-      clientName: process.env.DATABASE_CONNECTION_CLIENT_NAME,
-      manager: !serverConfig.DISABLE_MANAGER ? `${req.protocol}://${req.get('host')}/manager` : undefined,
-      documentation: `https://doc.evolution-api.com`,
-    });
+    if (serverConfig.DISABLE_MANAGER) {
+      res.status(HttpStatus.OK).json({
+        status: HttpStatus.OK,
+        message: 'Welcome to the Evolution API, it is working!',
+        version: packageJson.version,
+        clientName: process.env.DATABASE_CONNECTION_CLIENT_NAME,
+        manager: `${req.protocol}://${req.get('host')}/manager`,
+        documentation: `https://doc.evolution-api.com`,
+      });
+    }
+
+    res.status(302).redirect('/manager');
   })
   .post('/verify-creds', authGuard['apikey'], async (req, res) => {
     return res.status(HttpStatus.OK).json({
